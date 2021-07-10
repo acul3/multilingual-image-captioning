@@ -9,8 +9,8 @@ from jax.random import PRNGKey
 from transformers import (
     CLIPVisionConfig,
     FlaxCLIPVisionModel,
-    FlaxMBartModel,
-    MBartConfig,
+    FlaxMarianModel,
+    MarianConfig
 )
 from transformers.modeling_flax_outputs import (
     FlaxBaseModelOutputWithPooling,
@@ -19,26 +19,26 @@ from transformers.modeling_flax_outputs import (
     FlaxSeq2SeqModelOutput,
 )
 from transformers.models.clip.modeling_flax_clip import FlaxCLIPVisionModule
-from transformers.models.mbart.modeling_flax_mbart import (
-    FlaxMBartDecoder,
+from transformers.models.marian.modeling_flax_marian import  (
+    FlaxMarianDecoder,
     FlaxPreTrainedModel,
-    shift_tokens_right,
+    shift_tokens_right
 )
 
-from .configuration_clip_vision_mbart import CLIPVisionMBartConfig
-from .modeling_clip_vision_utils import FlaxCLIPVisionMBartPreTrainedModel
+from .modeling_clip_vision_utils import FlaxCLIPVisionMarianPreTrainedModel
+from .configuration_clip_vision_marian import CLIPVisionMarianConfig
 
 
-class FlaxCLIPVisionMBartModule(nn.Module):
-    config: CLIPVisionMBartConfig
+class FlaxCLIPVisionMarianModule(nn.Module):
+    config: CLIPVisionMarianConfig
     dtype: jnp.dtype = jnp.float32  # the dtype of the computation
 
     def setup(self):
         self.shared = nn.Embed(
-            self.config.mbart_config.vocab_size,
-            self.config.mbart_config.d_model,
+            self.config.marian_config.vocab_size,
+            self.config.marian_config.d_model,
             embedding_init=jax.nn.initializers.normal(
-                self.config.mbart_config.init_std, self.dtype
+                self.config.marian_config.init_std, self.dtype
             ),
             dtype=self.dtype,
         )
@@ -46,15 +46,15 @@ class FlaxCLIPVisionMBartModule(nn.Module):
         self.encoder = FlaxCLIPVisionModule(
             self.config.clip_vision_config, dtype=self.dtype
         )
-        self.decoder = FlaxMBartDecoder(
-            self.config.mbart_config, dtype=self.dtype, embed_tokens=self.shared
+        self.decoder = FlaxMarianDecoder(
+            self.config.marian_config, dtype=self.dtype, embed_tokens=self.shared
         )
 
         self.visual_projection = nn.Dense(
-            self.config.mbart_config.hidden_size,
+            self.config.marian_config.hidden_size,
             dtype=self.dtype,
             kernel_init=jax.nn.initializers.normal(
-                self.config.mbart_config.init_std, self.dtype
+                self.config.marian_config.init_std, self.dtype
             ),
         )
 
@@ -115,19 +115,19 @@ class FlaxCLIPVisionMBartModule(nn.Module):
         )
 
 
-class FlaxCLIPVisionMBartForConditionalGenerationModule(nn.Module):
-    config: CLIPVisionMBartConfig
+class FlaxCLIPVisionMarianForConditionalGenerationModule(nn.Module):
+    config: CLIPVisionMarianConfig
     dtype: jnp.dtype = jnp.float32
     bias_init: Callable[..., jnp.ndarray] = jax.nn.initializers.zeros
 
     def setup(self):
-        self.model = FlaxCLIPVisionMBartModule(config=self.config, dtype=self.dtype)
+        self.model = FlaxCLIPVisionMarianModule(config=self.config, dtype=self.dtype)
         self.lm_head = nn.Dense(
             self.model.shared.num_embeddings,
             use_bias=False,
             dtype=self.dtype,
             kernel_init=jax.nn.initializers.normal(
-                self.config.mbart_config.init_std, self.dtype
+                self.config.marian_config.init_std, self.dtype
             ),
         )
         self.final_logits_bias = self.param(
@@ -192,14 +192,14 @@ class FlaxCLIPVisionMBartForConditionalGenerationModule(nn.Module):
         )
 
 
-class FlaxCLIPVisionMBartOuterPreTrainedModel(FlaxCLIPVisionMBartPreTrainedModel):
-    config_class = CLIPVisionMBartConfig
+class FlaxCLIPVisionMarianOuterPreTrainedModel(FlaxCLIPVisionMarianPreTrainedModel):
+    config_class = CLIPVisionMarianConfig
     base_model_prefix: str = "model"
     module_class: nn.Module = None
 
     def __init__(
         self,
-        config: CLIPVisionMBartConfig,
+        config: CLIPVisionMarianConfig,
         input_shape: Tuple = None,
         seed: int = 0,
         dtype: jnp.dtype = jnp.float32,
@@ -224,7 +224,7 @@ class FlaxCLIPVisionMBartOuterPreTrainedModel(FlaxCLIPVisionMBartPreTrainedModel
     def init_weights(self, rng: jax.random.PRNGKey, input_shape: Tuple) -> FrozenDict:
         # init input tensors
         pixel_values = jax.random.normal(rng, input_shape[0])
-        # # make sure initialization pass will work for FlaxMBartForSequenceClassificationModule
+        # # make sure initialization pass will work for FlaxMarianForSequenceClassificationModule
         # input_ids = jax.ops.index_update(input_ids, (..., -1), self.config.eos_token_id)
 
         decoder_input_ids = jnp.zeros(input_shape[1], dtype="i4")
@@ -395,7 +395,7 @@ class FlaxCLIPVisionMBartOuterPreTrainedModel(FlaxCLIPVisionMBartPreTrainedModel
 
         # if past_key_values are passed then cache is already initialized a private flag init_cache has to be
         # passed down to ensure cache is used. It has to be made sure that cache is marked as mutable so that
-        # it can be changed by FlaxMBartAttention module
+        # it can be changed by FlaxMarianAttention module
         if past_key_values:
             inputs["cache"] = past_key_values
             mutable = ["cache"]
@@ -510,10 +510,10 @@ class FlaxCLIPVisionMBartOuterPreTrainedModel(FlaxCLIPVisionMBartPreTrainedModel
         )
 
 
-class FlaxCLIPVisionMBartForConditionalGeneration(
-    FlaxCLIPVisionMBartOuterPreTrainedModel
+class FlaxCLIPVisionMarianForConditionalGeneration(
+    FlaxCLIPVisionMarianOuterPreTrainedModel
 ):
-    module_class = FlaxCLIPVisionMBartForConditionalGenerationModule
+    module_class = FlaxCLIPVisionMarianForConditionalGenerationModule
     dtype: jnp.dtype = jnp.float32
 
     def decode(
@@ -574,7 +574,7 @@ class FlaxCLIPVisionMBartForConditionalGeneration(
 
         # if past_key_values are passed then cache is already initialized a private flag init_cache has to be
         # passed down to ensure cache is used. It has to be made sure that cache is marked as mutable so that
-        # it can be changed by FlaxMBartAttention module
+        # it can be changed by FlaxMarianAttention module
         if past_key_values:
             inputs["cache"] = past_key_values
             mutable = ["cache"]
@@ -693,49 +693,44 @@ class FlaxCLIPVisionMBartForConditionalGeneration(
         return model_kwargs
 
     @classmethod
-    def from_clip_vision_mbart_pretrained(
+    def from_clip_vision_marian_pretrained(
         cls,
         clip_vision_model_name_or_path: str = None,
-        mbart_model_name_or_path: str = None,
+        marian_model_name_or_path: str = None,
         *model_args,
         **kwargs,
-    ) -> FlaxCLIPVisionMBartPreTrainedModel:
+    ) -> FlaxCLIPVisionMarianPreTrainedModel:
 
-        kwargs_mbart = {
-            argument[len("mbart_") :]: value
+        kwargs_marian = {
+            argument[len("marian_") :]: value
             for argument, value in kwargs.items()
-            if argument.startswith("mbart_")
+            if argument.startswith("marian_")
         }
-        print('MBART',kwargs_mbart)
         kwargs_clip_vision = {
             argument[len("clip_vision_") :]: value
             for argument, value in kwargs.items()
             if argument.startswith("clip_vision_")
         }
-        print('CLIP',kwargs_clip_vision)
-        # remove mbart, clip_vision kwargs from kwargs
-        for key in kwargs_mbart.keys():
-            del kwargs["mbart_" + key]
+        # remove marian, clip_vision kwargs from kwargs
+        for key in kwargs_marian.keys():
+            del kwargs["marian_" + key]
         for key in kwargs_clip_vision.keys():
             del kwargs["clip_vision_" + key]
 
-        # Load and initialize the mbart and clip_vision model
-        mbart_model = kwargs_mbart.pop("model", None)
-        if mbart_model is None:
-            print("MBART MODEL KOSONG")
+        # Load and initialize the marian and clip_vision model
+        marian_model = kwargs_marian.pop("model", None)
+        if marian_model is None:
             assert (
-                mbart_model_name_or_path is not None
-            ), "If `model` is not defined as an argument, a `mbart_model_name_or_path` has to be defined"
+                marian_model_name_or_path is not None
+            ), "If `model` is not defined as an argument, a `marian_model_name_or_path` has to be defined"
 
-            if "config" not in kwargs_mbart:
-                mbart_config = MBartConfig.from_pretrained(mbart_model_name_or_path)
-                kwargs_mbart["config"] = mbart_config
+            if "config" not in kwargs_marian:
+                marian_config = MarianConfig.from_pretrained(marian_model_name_or_path)
+                kwargs_marian["config"] = marian_config
 
-            mbart_model = FlaxMBartModel.from_pretrained(
-                mbart_model_name_or_path, *model_args, **kwargs_mbart,from_pt=True
+            marian_model = FlaxMarianModel.from_pretrained(
+                marian_model_name_or_path, *model_args, **kwargs_marian,from_pt=True
             )
-        print('mbart_model',mbart_model)
-
         clip_vision_model = kwargs_clip_vision.pop("model", None)
         if clip_vision_model is None:
             assert (
@@ -754,21 +749,21 @@ class FlaxCLIPVisionMBartForConditionalGeneration(
 
         # instantiate config with corresponding kwargs
         dtype = kwargs.pop("dtype", jnp.float32)
-        config = CLIPVisionMBartConfig.from_clip_vision_mbart_configs(
-            clip_vision_model.config, mbart_model.config, **kwargs
+        config = CLIPVisionMarianConfig.from_clip_vision_marian_configs(
+            clip_vision_model.config, marian_model.config, **kwargs
         )
 
         # init model
         model = cls(config, *model_args, dtype=dtype, **kwargs)
-        print("gg",model.params["model"]["decoder"])
         model.params["model"]["encoder"] = clip_vision_model.params
-        model.params["model"]["decoder"] = mbart_model.params["decoder"]
-        model.params["model"]["shared"] = mbart_model.params["shared"]
-        # model.params["mbart_model"] = mbart_model.params
+        model.params["model"]["decoder"] = marian_model.params["decoder"]
+        model.params["model"]["shared"] = marian_model.params["shared"]
+        # model.params["marian_model"] = marian_model.params
 
         return model
 
 
-#flax_clip_vision_mbart_cg = FlaxCLIPVisionMBartForConditionalGeneration.from_clip_vision_mbart_pretrained('openai/clip-vit-base-patch32', 'facebook/mbart-large')
-# outputs = flax_clip_vision_mbart_cg(pixel_values, input_ids, attention_mask, position_ids, output_hidden_states=True)
+# flax_clip_vision_marian_cg = FlaxCLIPVisionmarianForConditionalGeneration.from_clip_vision_marian_pretrained('openai/clip-vit-base-patch32', 'facebook/marian-large')
+# outputs = flax_clip_vision_marian_cg(pixel_values, input_ids, attention_mask, position_ids, output_hidden_states=True)
 # flax_vit_bart_cg.generate(input_ids=pixel_values, decoder_start_token_id=tokenizer.lang_code_to_id['en_XX'])s
+#flax_clip_vision_marian_cg = FlaxCLIPVisionMarianForConditionalGeneration.from_clip_vision_marian_pretrained('openai/clip-vit-base-patch32','Helsinki-NLP/opus-mt-en-id')

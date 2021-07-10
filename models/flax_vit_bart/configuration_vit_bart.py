@@ -1,6 +1,6 @@
 import copy
 
-from transformers import BartConfig, ViTConfig
+from transformers import ViTConfig, GPT2Config
 from transformers.configuration_utils import PretrainedConfig
 from transformers.utils import logging
 
@@ -21,7 +21,7 @@ class ViTBartConfig(PretrainedConfig):
         if vit_config_dict is None:
             raise ValueError("`vit_config_dict` can not be `None`.")
 
-        self.bart_config = BartConfig(**bart_config_dict)
+        self.bart_config = GPT2Config(**bart_config_dict)
 
         self.vit_config = ViTConfig(**vit_config_dict)
 
