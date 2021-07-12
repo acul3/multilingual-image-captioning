@@ -1,3 +1,6 @@
+# Forked From
+https://github.com/gchhablani/multilingual-image-captioning 
+
 # Multingual Image Captioning
 
 Multilingual Image Captioning using ViT and mBART, pre-trained on WIT dataset.
@@ -25,7 +28,8 @@ This project is developed as a part of the 🤗 JAX/Flax community week!
 
 ## Model(s)
 - ViT
-- mBART
+- Marian
+- GPT2
 
 ## Dataset(s)
 
@@ -57,10 +61,3 @@ Side-goal: Our end use case would be to run this model on a video clip or movie 
 
 ### HuggingFace Instructions
 - [JAX/Flax Community Week](https://github.com/huggingface/transformers/tree/master/examples/research_projects/jax-projects#how-to-submit-a-demo)
-
-### Our Notebooks
-
-### Papers
-
-### Misc
-- [Forum Post](https://discuss.huggingface.co/t/multilingual-image-captioning/7671)
