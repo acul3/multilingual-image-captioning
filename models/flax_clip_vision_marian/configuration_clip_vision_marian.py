@@ -12,18 +12,21 @@ class CLIPVisionMarianConfig(PretrainedConfig):
     model_type = "clip-vision-marian"
     is_composition = True
     
-    def __init__(self, clip_vision_config_dict, marian_config_dict, **kwargs):
+    def __init__(self,  **kwargs):
         super().__init__(**kwargs)
 
-        if marian_config_dict is None:
+        if "marian_config" not in kwargs:
             raise ValueError("`marian_config_dict` can not be `None`.")
 
-        if clip_vision_config_dict is None:
+        if "clip_vision_config" not in kwargs:
             raise ValueError("`clip_vision_config_dict` can not be `None`.")
 
-        self.marian_config = MarianConfig(**marian_config_dict)
+        marian_config = kwargs.pop("marian_config")
+        clip_vision_config = kwargs.pop("clip_vision_config")
+        
+        self.marian_config = MarianConfig(**marian_config)
 
-        self.clip_vision_config = CLIPVisionConfig(**clip_vision_config_dict)
+        self.clip_vision_config = CLIPVisionConfig(**clip_vision_config)
 
         self.is_encoder_decoder = True
 
@@ -35,8 +38,8 @@ class CLIPVisionMarianConfig(PretrainedConfig):
         **kwargs
     ):
         return cls(
-            clip_vision_config_dict=clip_vision_config.to_dict(),
-            marian_config_dict=marian_config.to_dict(),
+            clip_vision_config=clip_vision_config.to_dict(),
+            marian_config=marian_config.to_dict(),
             **kwargs
         )
 

@@ -1,0 +1,2 @@
+from .modeling_flax_vit_gpt2 import FlaxViTGPT2ForConditionalGeneration
+from .modeling_flax_vit_gpt2_lm import FlaxViTGPT2LMForConditionalGeneration

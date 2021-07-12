@@ -1,2 +1,4 @@
 from .flax_clip_vision_marian import FlaxCLIPVisionMarianForConditionalGeneration
 from .flax_clip_vision_mbart import FlaxCLIPVisionMBartForConditionalGeneration
+from .vit_gpt2 import FlaxViTGPT2LMForConditionalGeneration
+from .vit_gpt2 import FlaxViTGPT2ForConditionalGeneration
