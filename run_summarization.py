@@ -342,7 +342,7 @@ def main():
 
     feature_extractor = ViTFeatureExtractor.from_pretrained(vit_name_path)
 
-    tokenizer = GPT2Tokenizer.from_pretrained(gpt2_name_path)
+    tokenizer = GPT2Tokenizer.from_pretrained(gpt2_name_path,pad_token="<PAD>")
 
     if not vit_gpt2_name_path:
         assert vit_name_path
@@ -399,8 +399,6 @@ def main():
 
         # Setup the tokenizer for targets
         with tokenizer.as_target_tokenizer():
-            if tokenizer.pad_token is None:
-                tokenizer.pad_token = tokenizer.eos_token
             labels = tokenizer(
                 targets, max_length=max_target_length, padding="max_length", truncation=True, return_tensors="np"
             )
