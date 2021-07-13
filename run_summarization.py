@@ -399,7 +399,6 @@ def main():
 
         # Setup the tokenizer for targets
         with tokenizer.as_target_tokenizer():
-            print('targets',targets)
             labels = tokenizer(
                 targets, max_length=max_target_length, padding="max_length", truncation=True, return_tensors="np"
             )
@@ -409,7 +408,7 @@ def main():
         #print(labels["input_ids"])
         #print(gpt2_config.pad_token_id)
         #rint(gpt2_config.bos_token_id)
-        
+        print('targets',targets)
         decoder_input_ids = shift_tokens_right_fn(
             jnp.array(labels["input_ids"]), gpt2_config.pad_token_id, gpt2_config.bos_token_id
         )
