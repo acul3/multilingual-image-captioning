@@ -394,12 +394,12 @@ def main():
         pixel_values = np.concatenate(_pixel_values)
 
         targets = examples[caption_column]
-        print('targets',targets)
         model_inputs = {}
         model_inputs['pixel_values'] = pixel_values
 
         # Setup the tokenizer for targets
         with tokenizer.as_target_tokenizer():
+            print('targets',targets)
             labels = tokenizer(
                 targets, max_length=max_target_length, padding="max_length", truncation=True, return_tensors="np"
             )
