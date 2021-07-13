@@ -1,3 +1,4 @@
 flax_jax_env/*
 *__pycache__*
 *.pyc
+train_data/*
