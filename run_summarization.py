@@ -31,7 +31,8 @@ from pathlib import Path
 from typing import Callable, Optional
 
 import datasets
-import nltk  # Here to have a nice missing dependency error message early on
+import nltk
+from nltk.util import pr  # Here to have a nice missing dependency error message early on
 import numpy as np
 from datasets import Dataset, load_dataset, load_metric
 from tqdm import tqdm
@@ -393,7 +394,7 @@ def main():
         pixel_values = np.concatenate(_pixel_values)
 
         targets = examples[caption_column]
-
+        print('targets',targets)
         model_inputs = {}
         model_inputs['pixel_values'] = pixel_values
 
