@@ -342,7 +342,9 @@ def main():
 
     feature_extractor = ViTFeatureExtractor.from_pretrained(vit_name_path)
 
-    tokenizer = GPT2Tokenizer.from_pretrained(gpt2_name_path,pad_token="<PAD>")
+    tokenizer = GPT2Tokenizer.from_pretrained(gpt2_name_path)
+
+    tokenizer.pad_token_id = str(1)
 
     if not vit_gpt2_name_path:
         assert vit_name_path
