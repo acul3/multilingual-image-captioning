@@ -332,7 +332,7 @@ def main():
     dataset = datasets.load_dataset('wit_dataset_script.py', data_dir='train_data',cache_dir=model_args.cache_dir)
 
     vit_name_path = 'google/vit-base-patch16-224-in21k'
-    gpt2_name_path = 'flax-community/gpt2-small-indonesian'
+    gpt2_name_path = 'asi/gpt-fr-cased-small'
     
     gpt2_config = GPT2Config.from_pretrained(gpt2_name_path)
     gpt2_config.add_cross_attention = True
@@ -344,7 +344,7 @@ def main():
 
     tokenizer = GPT2Tokenizer.from_pretrained(gpt2_name_path)
 
-    tokenizer.pad_token_id = str(1)
+    #tokenizer.pad_token_id = str(1)
 
     if not vit_gpt2_name_path:
         assert vit_name_path
